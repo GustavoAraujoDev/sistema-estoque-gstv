@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="logogustavodev.jpg" type="image/x-icon">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+
+    <title>Dashboard | Nome Empresa</title>
+</head>
+
+<body>
+    <button class="sair" onclick="LogoOut()"><i class="bi bi-box-arrow-left"></i> LogoOut</button>
+    <button id="btnAbrirDia" onclick="abrirDia()"><i class="bi bi-sun"></i> Abrir Dia</button>
+    <button id="btnFecharDia" onclick="fecharDia()" style="display:none;"><i class="bi bi-moon"></i> Fechando...</button>
+
+    <div class="logo">
+        <img src="logogustavodev.jpg" alt="Logotipo da Churrascaria">
+    </div>
+
+    <h1>Dashboard Nome Empresa</h1>
+    <div id="welcomeMessage">
+        <h2 style="color: gold; text-shadow: 2px 2px 4px rgba(116, 68, 68, 0.3);">Bem-vindo, <span id="welcomeUsername"></span>!</h2>
+    </div>
+    </div>
+    <h2>Início do Dia</h2>
+    <table id="tabelaInicioDia" class="aberto">
+        <tr>
+            <th>Produto</th>
+            <th>Quantidade</th>
+            <th data-preco-unitario="0">Preço Unit. (R$)</th>
+            <th>Atualizar Quantidade</th>
+        </tr>
+    </table>
+    <h2>Fim do Dia</h2>
+    <table id="tabelaFimDia" class="fechado">
+    </table>
+    <p>Total de Produtos: <span id="totalProdutos">0</span></p>  
+    <div id="visaoGeral" class="visao-geral">
+        <!-- As informações serão adicionadas dinamicamente aqui -->
+    </div>
+    <button onclick="openProductModal()"><i class="bi bi-list-ul"></i> Lista de Alerta Baixo</button>
+    <button onclick="compararalert()"> <i class="bi bi-exclamation-triangle"></i> Alerta de Estoque Baixo</button>
+    <button onclick="adicionarProduto()"> <i class="bi bi-plus"></i> Adicionar Produto</button>
+    <button onclick="calcularDiferencasEExportar()"><i class="bi bi-filetype-txt"></i> Relatorio Diario</button>
+    <button onclick="mostrarFormularioPedido()"><i class="bi bi-list-check"></i> Fazer Pedidos</button>
+    <button onclick="">Listar relatório</button>
+
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <p id="modalContent"></p>
+        </div>
+    </div>
+
+    <div id="productModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProductModal()">&times;</span>
+            <img src="logogustavodev.jpg" class="logolistpedidos">
+            <h2>Lista de estoque baixo</h2>
+             <table id="productList">
+             </table>
+            <h3>Adicionar Produto</h3>
+            <label for="productName">Nome do Produto:</label>
+            <input type="text" id="productName" name="productName" required>
+    
+            <label for="productQuantity">Quantidade Baixa:</label>
+            <input type="number" id="productQuantity" name="productQuantity" required>
+    
+            <button onclick="addProductToList()">Adicionar Produto</button>
+        </div>
+    </div>
+
+    <div id="formularioPedido" style="display:none;" class="formularioPedido">
+        <button type="button" onclick="fecharFormularioPedido()">Fechar</button>
+        <h2>Fazer Pedido</h2>
+        <form id="formPedido">
+            <label for="produto">Produto:</label>
+            <input type="text" id="produto" name="produto" required>
+    
+            <label for="quantidade">Quantidade:</label>
+            <input type="number" id="quantidade" name="quantidade" required>
+    
+            <label for="precoUnitario">Preço Unitário (R$):</label>
+            <input type="number" id="precoUnitario" name="precoUnitario" required>
+    
+            <button type="button" onclick="adicionarAoPedido()">Adicionar Pedido</button>
+            <button type="button" onclick="enviarPedidoAoFornecedor('5588999935987')"><i class="bi bi-whatsapp"></i> Carnes </button>
+            <button type="button" onclick="enviarPedidoAoFornecedor('5588999935987')"><i class="bi bi-whatsapp"></i> Bebidas </button>
+            <button type="button" onclick="enviarPedidoAoFornecedor('5588999935987')"><i class="bi bi-whatsapp"></i> Mercado </button>
+            <button type="button" onclick="enviarPedidoAoFornecedor('5588999935987')"><i class="bi bi-whatsapp"></i> Embalages</button>
+        </form>
+    </div>
+    
+
+
+    <footer>
+        <p>&copy; 2023 GSTV DEV - Sistema de Estoque</p>
+    </footer>
+
+    <script src="app.js"></script>
+    
+</body>
+
+</html>

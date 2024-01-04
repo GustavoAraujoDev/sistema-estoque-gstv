@@ -1,0 +1,344 @@
+*{ 
+    font-family: 'Roboto', sans-serif; /* Fonte atualizada */
+}
+/* Estilos Gerais */
+body {
+    margin: 20px auto; /* Centraliza horizontalmente */
+    background-color: #fff; /* Branco como cor de fundo */
+    text-align: center; /* Centraliza o conteúdo */
+    border-radius: 10px; /* Borda arredondada para o corpo */
+    padding: 20px; /* Adiciona espaçamento interno ao corpo */
+}
+
+.formulariopedidos {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+.formulariopedidos {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.logolistpedidos{
+    height: 150px;
+    border-radius: 50%;
+}
+
+canvas {
+    display: block;
+    margin: 20px auto; /* Centraliza o canvas */
+    background: #f9f9f9; /* Cor de fundo do canvas */
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+}
+
+h1, h2 {
+    color: #333;
+    font-family: 'Montserrat', sans-serif; /* Fonte atualizada */
+}
+
+p {
+    margin-bottom: 10px;
+}
+
+.logo img {
+    height: 300px;
+    width: 300px;
+    margin-bottom: 20px; /* Adiciona espaçamento entre a imagem e o título */
+    margin-top: 25px;
+    box-shadow: 5px 5px 10px rgba(116, 68, 68, 0.3); /* Adiciona sombra ao texto */
+    border-radius: 85%; /* Borda arredondada para a imagem */
+    animation: fadeIn 1s ease-in-out; /* Adiciona animação de fade-in ao logo */
+}
+
+h1 {
+    color: gold; /* Vermelho para o título principal */
+    text-shadow: 2px 2px 4px rgba(116, 68, 68, 0.3); /* Adiciona sombra ao texto */
+}
+
+/* Estilos para Tabelas */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Adiciona sombra à tabela */
+    display: table; /* Adiciona a propriedade display: table para garantir que a tabela esteja sempre visível */
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 8px;
+}
+
+th, td {
+    padding: 15px;
+    text-align: left;
+}
+
+th {
+    background-color: gold; /* Vermelho como cor de destaque para cabeçalhos */
+    color: #fff; /* Texto branco para contraste */
+}
+
+/* Estilos para Status da Tabela (Aberto/Fechado) */
+.aberto {
+    background-color: black; /* Preto como cor para status 'Aberto' */
+    color: #fff; /* Texto branco para contraste */
+}
+
+/* Estilos para Botões */
+button {
+    padding: 10px;
+    margin: 5px;
+    background-color: gold; /* Vermelho para os botões */
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Adiciona sombra ao botão */
+    animation: fadeIn 1s ease-in-out; /* Adiciona animação de fade-in ao botão */
+}
+
+.cabecalho-tabela {
+    background-color: black;
+    color: white; /* Cor do texto no cabeçalho */
+    /* Outros estilos específicos para o cabeçalho */
+    font-weight: bold;
+}
+
+.corpo-tabela{
+    background-color: gold;
+    color: white;
+}
+
+.logopedidos{
+    height: 150px;
+    border-radius: 50%;
+}
+
+button:hover {
+    background-color: goldenrod; /* Tom mais escuro no hover */
+}
+
+/* Estilos para Rodapé */
+footer {
+    text-align: center;
+    margin-top: 20px;
+    color: #333; /* Preto para o rodapé */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Adiciona sombra ao texto */
+    animation: fadeIn 1s ease-in-out; /* Adiciona animação de fade-in ao rodapé */
+}
+
+@media screen and (min-width: 600px) {
+    table {
+        font-size: 16px; /* Ajusta o tamanho da fonte para telas maiores */
+    }
+}
+
+/* Estilos para Tabelas em Telas Menores (Máx. 600px) */
+@media screen and (max-width: 600px) {
+    table {
+        font-size: 14px; /* Reduz o tamanho da fonte para telas menores */
+    }
+
+    th, td {
+        padding: 10px; /* Reduz o espaçamento interno */
+    }
+}
+
+#formularioPedido {
+    display: none;
+    position: fixed;
+    bottom: 0; /* Fixa o formulário no final da tela */
+    left: 0;
+    width: 100%;
+    height: 25%;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 1000;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: row; /* Altera a direção para linha para colocar os botões lado a lado */
+    justify-content: space-between; /* Distribui os elementos uniformemente */
+    align-items: center; /* Centraliza os elementos verticalmente */
+    animation: fadeIn 1s ease-in-out; /* Adiciona animação de fade-in ao formulário */
+}
+
+#formularioPedido button {
+    background-color: gold;
+    color: white;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 10px;
+}
+
+#tabelaFimDia {
+    border-collapse: collapse;
+    width: 100%;
+  }
+
+#formularioPedido h2 {
+    color: #333;
+}
+
+#formularioPedido label {
+    display: block;
+    margin-top: 10px;
+}
+
+#formularioPedido input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+}
+
+@media (max-width: 600px) {
+    #formularioPedido {
+        flex-direction: column; /* Altera para coluna em telas menores para empilhar os botões */
+        height: 50%; /* Remove a altura fixa para acomodar botões lado a lado */
+    }
+
+    #formularioPedido button {
+        margin-top: 5px; /* Adiciona espaço entre os botões em telas menores */
+    }
+}
+
+.fechar-formulario{
+    display: none;
+}
+
+/* Definir keyframes para a animação de fade-in */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* Animação no Título */
+h1 {
+    transform: scale(1);
+    transition: transform 0.3s ease-in-out;
+}
+
+h1:hover {
+    transform: scale(1.05);
+}
+
+/* Animação nos Botões */
+button {
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+button:hover {
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Animação no Logo */
+.logo img {
+    transition: transform 0.5s ease-in-out;
+}
+
+.logo img:hover {
+    transform: rotate(360deg);
+}
+
+/* Animação no Rodapé */
+footer {
+    transition: opacity 0.5s ease-in-out;
+}
+
+footer:hover {
+    opacity: 0.8;
+}
+
+/* Animação nos Campos de Formulário */
+#formularioPedido input {
+    transition: border 0.3s ease-in-out;
+}
+
+#formularioPedido input:focus {
+    border: 2px solid gold;
+}

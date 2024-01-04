@@ -1,0 +1,82 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  background-color: #f5f5f5; /* Um tom mais suave de cinza */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+.flex{
+  display: grid;
+}
+
+footer {
+  text-align: center;
+  margin-top: 20px;
+  color: #333; /* Preto para o rodapé */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3); /* Adiciona sombra ao texto */
+  animation: fadeIn 1s ease-in-out; /* Adiciona animação de fade-in ao rodapé */
+}
+
+h2{
+  text-shadow: 2px 2px 4px rgba(116, 68, 68, 0.3);
+}
+
+.login-container {
+  max-width: 400px;
+  width: 100%;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  box-sizing: border-box;
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.login-container img{
+  height: 300px;
+  border-radius: 50%;
+  box-shadow: 5px 5px 10px rgba(116, 68, 68, 0.3);
+}
+
+.logo {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 20px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  text-align: left;
+  margin-bottom: 5px;
+  color: #333; /* Tom mais escuro de cinza para melhor legibilidade */
+}
+
+input {
+  padding: 10px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+  border: 1px solid #ccc; /* Adiciona uma borda para distinção */
+  border-radius: 5px;
+}
+
+button {
+  background-color: gold;
+  color: #fff;
+  padding: 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s; /* Adiciona uma transição suave para o hover */
+}
+
+button:hover {
+  background-color: goldenrod; /* Um tom mais escuro de vermelho no hover */
+}
