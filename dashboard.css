@@ -36,6 +36,7 @@ body {
     z-index: 1;
     border: none;
     border-radius: 8px;
+    overflow: auto;
 }
 
 .formulariopedidos {
@@ -306,6 +307,17 @@ footer {
 }
 
 @media (max-width: 600px) {
+    .myModalestimativa{
+        height: 80%;
+        width: 65%;
+        overflow: auto;
+    }
+    .modalfinalizado{
+        overflow: auto;
+    }
+    .productModal{
+        overflow: auto;
+    }
     #formularioPedido {
         flex-direction: column; /* Altera para coluna em telas menores para empilhar os botões */
         height: 50%; /* Remove a altura fixa para acomodar botões lado a lado */
