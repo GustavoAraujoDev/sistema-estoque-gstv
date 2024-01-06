@@ -320,6 +320,16 @@ function closeProductModal() {
     modal.style.display = 'none';
 }
 
+function closemodalfinalizado() {
+    var modal = document.getElementById('modalfinalizado');
+    modal.style.display = 'none';
+}
+
+function fecharestimativa() {
+    var modal = document.getElementById('myModalestimativa');
+    modal.style.display = 'none';
+}
+
 function atualizarInterfaceDia() {
     var btnAbrirDia = document.getElementById('btnAbrirDia');
     var btnFecharDia = document.getElementById('btnFecharDia');
@@ -547,14 +557,17 @@ function fecharFormularioPedido() {
     pedidoForm.style.display = "none";
 }
 
-let pedido = ""; // Variável para armazenar o pedido
+let pedidosPendentes = [];  // Lista para armazenar pedidos pendentes
+let pedidosFinalizados = [];  // Lista para armazenar pedidos finalizados
 
 function adicionarAoPedido() {
     const produto = document.getElementById("produto").value;
     const quantidade = document.getElementById("quantidade").value;
 
     if (produto && quantidade) {
-        pedido += `Produto: ${produto}, Quantidade: ${quantidade}\n`;
+        const novoPedido = `Produto: ${produto}, Quantidade: ${quantidade}`;
+        pedidosPendentes.push(novoPedido);
+        salvarPedidosFinalizadosNoFirebase();
         limparCampos();
         alert("Produto adicionado ao pedido!");
     } else {
@@ -568,16 +581,234 @@ function limparCampos() {
 }
 
 function enviarPedidoAoFornecedor(numeroFornecedor) {
-            if (pedido) {
-                const mensagem = encodeURIComponent(`Novo Pedido:\n${pedido}`);
-                const urlWhatsApp = `https://api.whatsapp.com/send?phone=${numeroFornecedor}&text=${mensagem}`;
-                window.open(urlWhatsApp, '_blank');
-                pedido = "";
-                alert("Pedido enviado ao fornecedor!");
-            } else {
-                alert("O pedido está vazio. Adicione produtos antes de enviar.");
+    if (pedidosPendentes.length > 0) {
+        const mensagem = encodeURIComponent(`Novo Pedido:\n${pedidosPendentes.join('\n')}`);
+        const urlWhatsApp = `https://api.whatsapp.com/send?phone=${numeroFornecedor}&text=${mensagem}`;
+        window.open(urlWhatsApp, '_blank');
+        
+        // Mover pedidos pendentes para pedidos finalizados
+        pedidosFinalizados = pedidosFinalizados.concat(pedidosPendentes);
+        salvarPedidosFinalizadosNoFirebase();
+        pedidosPendentes = [];
+        
+        alert("Pedido enviado ao fornecedor!");
+    } else {
+        alert("O pedido está vazio. Adicione produtos antes de enviar.");
+    }
+}
+
+function exibirPedidosFinalizados() {
+    var modal = document.getElementById('modalfinalizado');
+    modal.style.display = 'block';
+    const listaPedidosFinalizados = document.getElementById("listaPedidosFinalizados");
+    listaPedidosFinalizados.innerHTML = ""; // Limpa a lista antes de atualizar
+
+    if (pedidosFinalizados.length > 0) {
+        pedidosFinalizados.forEach((pedido, index) => {
+            const listItem = document.createElement("li");
+            listItem.textContent = pedido;
+
+            // Adiciona botão de exclusão
+            const btnExcluir = document.createElement("button");
+            btnExcluir.textContent = "Excluir";
+            btnExcluir.onclick = function () {
+                deleteP(index);
+            };
+
+            // Adiciona botão de chegou
+            const btnChegou = document.createElement("button");
+            btnChegou.textContent = "Chegou";
+            btnChegou.onclick = function () {
+                marcarComoChegou(index);
+            };
+
+            listItem.appendChild(btnExcluir);
+            listItem.appendChild(btnChegou);
+            listaPedidosFinalizados.appendChild(listItem);
+        });
+        console.log(pedidosFinalizados);
+    } else {
+        listaPedidosFinalizados.innerHTML = "<p>Nenhum pedido finalizado.</p>";
+    }
+}
+
+function deleteP(index) {
+    // Remove o pedido do array pedidosFinalizados
+    const pedidoExcluido = pedidosFinalizados.splice(index, 1)[0];
+
+    // Remove o pedido do Firebase
+    var referenciaPedidosFinalizados = database.ref('pedidosFinalizados');
+    referenciaPedidosFinalizados.once('value').then(snapshot => {
+        snapshot.forEach(childSnapshot => {
+            var dadosPedido = childSnapshot.val();
+            if (dadosPedido.pedido === pedidoExcluido) {
+                childSnapshot.ref.remove().then(function() {
+                    console.log('Pedido excluído do Firebase.');
+                    // Após excluir do Firebase, atualiza a interface do usuário
+                    atualizarListaPedidosFinalizados();
+                }).catch(function(error) {
+                    console.error('Erro ao excluir pedido do Firebase:', error);
+                });
             }
+        });
+    });
+}
+
+
+function marcarComoChegou(index) {
+    const pedidoExcluido = pedidosFinalizados[index];
+
+    // Obtenha informações relevantes do pedido (por exemplo, nome do produto e quantidade)
+    const regexResult = /Produto: (.+), Quantidade: (\d+)/.exec(pedidoExcluido);
+
+    if (regexResult) {
+        const nomeProduto = regexResult[1];
+        const quantidadeChegou = parseInt(regexResult[2]);
+
+        console.log(`Nome do Produto: ${nomeProduto}, Quantidade Chegou: ${quantidadeChegou}`);
+
+
+        // Atualize a tabela com as informações do pedido que chegou
+        adicionarQuantidadeTabela(nomeProduto, quantidadeChegou);
+
+        // Remova o pedido da lista de pedidos finalizados
+        deleteP(index);
+    }
+}
+
+function adicionarQuantidadeTabela(nomeProduto, quantidadeChegou) {
+    var tabelaInicioDia = document.getElementById('tabelaInicioDia');
+    var linhas = tabelaInicioDia.rows;
+
+    for (var i = 1; i < linhas.length; i++) {
+        var colunas = linhas[i].cells;
+        var nomeProdutoNaTabela = colunas[0].textContent.trim();
+
+        if (nomeProdutoNaTabela === nomeProduto) {
+            // Use o atributo para armazenar e recuperar a quantidade
+            var celulaQuantidade = colunas[1];
+            var quantidadeNaTabela = parseInt(colunas[1].textContent.trim(), 10);
+
+            console.log(`Quantidade atual na tabela para ${nomeProduto}: ${quantidadeNaTabela}`);
+            
+            // Atualize a quantidade no Firebase
+            var novaQuantidade = quantidadeNaTabela + quantidadeChegou;
+            console.log(`Nova quantidade após a soma: ${novaQuantidade}`);
+            atualizarQuantidadeFirebase(nomeProduto, novaQuantidade);
+            
+            // Atualize diretamente a tabela na interface do usuário
+            celulaQuantidade.textContent = novaQuantidade;
+            celulaQuantidade.dataset.quantidade = novaQuantidade;
+
+            console.log(`Quantidade atualizada para ${nomeProduto}: ${novaQuantidade}`);
+            break;
         }
+    }
+}
+
+function atualizarQuantidadeFirebase(nomeProduto, novaQuantidade) {
+    if (!isNaN(novaQuantidade)) {
+        database.ref('produtos').orderByChild('nome').equalTo(nomeProduto).once('value').then(function(snapshot) {
+            snapshot.forEach(function(childSnapshot) {
+                // Atualize a propriedade de quantidade do produto
+                childSnapshot.ref.update({
+                    quantidade: novaQuantidade
+                }).then(function() {
+                    console.log('Produto atualizado no Firebase com nova quantidade:', novaQuantidade);
+
+                    // Exiba uma notificação
+                    exibirNotificacao('Produto Alterado', 'Um produto foi atualizado: ' + nomeProduto + ' - ' + novaQuantidade + ' unidades');
+                }).catch(function(error) {
+                    console.error('Erro ao atualizar produto no Firebase:', error);
+                });
+            });
+        });
+    } else {
+        alert("Por favor, digite um valor válido para a nova quantidade.");
+    }
+}
+
+// Dentro da função que adiciona pedidos finalizados no Firebase
+function salvarPedidosFinalizadosNoFirebase() {
+    var referenciaPedidosFinalizados = database.ref('pedidosFinalizados');
+    
+    // Adiciona cada pedido finalizado ao banco de dados
+    pedidosFinalizados.forEach(function (pedido) {
+        var novoPedidoRef = referenciaPedidosFinalizados.push(); // Gera um identificador exclusivo
+        novoPedidoRef.set({
+            pedido: pedido,
+            timestamp: firebase.database.ServerValue.TIMESTAMP
+        });
+    });
+}
+
+
+function carregarPedidosFinalizadosDoFirebase() {
+    return new Promise((resolve, reject) => {
+        console.log('Iniciando carga de pedidos finalizados.');
+
+        var referenciaPedidosFinalizados = database.ref('pedidosFinalizados');
+        const listaPedidosFinalizados = document.getElementById("listaPedidosFinalizados");
+
+        referenciaPedidosFinalizados.once('value').then(snapshot => {
+            console.log('Dados recebidos:', snapshot.val());
+
+            
+            snapshot.forEach(childSnapshot => {
+                var dadosPedido = childSnapshot.val();
+                var pedido = dadosPedido.pedido;
+
+                // Processa cada pedido conforme necessário
+                // Por exemplo, você pode exibi-los na interface do usuário
+                console.log('Pedido Finalizado:', pedido);
+
+                pedidosFinalizados.push(pedido);
+            });
+
+            // Atualiza a interface do usuário
+            atualizarListaPedidosFinalizados();
+
+            console.log('Carga de pedidos finalizados concluída.');
+            resolve();  // Resolvendo a promessa quando o carregamento for concluído com sucesso
+        }).catch(error => {
+            console.error('Erro ao carregar pedidos finalizados:', error);
+            reject(error);  // Rejeitando a promessa em caso de erro
+        });
+    });
+}
+
+function atualizarListaPedidosFinalizados() {
+    const listaPedidosFinalizados = document.getElementById("listaPedidosFinalizados");
+
+    // Limpa a lista antes de atualizar
+    listaPedidosFinalizados.innerHTML = "";
+
+    if (pedidosFinalizados.length > 0) {
+        pedidosFinalizados.forEach(function (pedido) {
+            const listItem = document.createElement("li");
+            listItem.textContent = pedido;
+            listaPedidosFinalizados.appendChild(listItem);
+        });
+    } else {
+        // Adicione uma mensagem se não houver pedidos finalizados
+        const listItem = document.createElement("li");
+        listItem.textContent = "Nenhum pedido finalizado.";
+        listaPedidosFinalizados.appendChild(listItem);
+    }
+}
+
+
+window.onload = function() {
+    carregarPedidosFinalizadosDoFirebase()
+        .then(() => {
+            // Outras operações de inicialização, se necessário
+        })
+        .catch(error => {
+            console.error('Erro durante o carregamento de pedidos finalizados:', error);
+            // Trate o erro conforme necessário
+        });
+};
+
 
 function formatarData(data) {
     if (typeof data === 'string') {
@@ -606,10 +837,7 @@ function formatarData(data) {
 
 var dadosInicioDia = [];
 var dadosFimDia = [];
-
-
-    document.getElementById('valorTotalEstoque').innerHTML = valorTotalEstoque.toFixed(2);
-
+var relatoriosGerados = [];
 
 function calcularDiferencasEExportar() {
     // Chama a função para preencher os arrays de dados
@@ -703,7 +931,6 @@ function calcularDiferencasEExportar() {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        
     } else {
         console.error("Não há dados para gerar o relatório.");
     }
@@ -999,6 +1226,67 @@ function restaurarDadosTabelaFimLocal() {
         });
 }   
 
+function estimarEstoqueAtualSeteDiasAtras() {
+    carregarHistoricoMovimentacao();
+
+    // Objeto para armazenar as estimativas de cada produto
+    var estimativas = {};
+
+    // Data atual
+    var dataAtual = new Date();
+
+    // Data há 7 dias
+    var dataSeteDiasAtras = new Date();
+    dataSeteDiasAtras.setDate(dataSeteDiasAtras.getDate() - 7);
+
+    // Array para armazenar as estimativas formatadas para exibição em HTML
+    var estimativasHTML = [];
+
+    for (var i = 0; i < historicoMovimentacao.length; i++) {
+        var movimentacao = historicoMovimentacao[i];
+        var dataMovimentacao = new Date(movimentacao.data);
+
+        // Verifica se a movimentação está dentro do intervalo de 7 dias
+        if (dataMovimentacao >= dataSeteDiasAtras && dataMovimentacao <= dataAtual) {
+            var produto = movimentacao.produto;
+            var quantidade = movimentacao.quantidade;
+
+            // Verifica se o produto já está no objeto de estimativas
+            if (!estimativas[produto]) {
+                estimativas[produto] = {
+                    totalVendido: 0,
+                    diasContados: 0
+                };
+            }
+
+            // Atualiza as estimativas para o produto
+            estimativas[produto].totalVendido += quantidade;
+            estimativas[produto].diasContados += 1;
+        }
+    }
+
+    // Calcula a média diária para cada produto e adiciona à lista HTML
+    for (var produto in estimativas) {
+        if (estimativas.hasOwnProperty(produto)) {
+            var mediaDiaria = estimativas[produto].totalVendido / estimativas[produto].diasContados;
+
+            // Adiciona à lista HTML
+            estimativasHTML.push(`<li>Estimativa para ${produto} nos últimos 7 dias: ${mediaDiaria} unidades por dia.</li>`);
+        }
+    }
+
+    // Exibe a lista em um modal (exemplo simples, ajuste conforme necessário)
+    var modalContent = document.getElementById('modal-content');
+    modalContent.innerHTML = `<ul>${estimativasHTML.join('')}</ul>`;
+
+    // Abre o modal (exemplo simples, ajuste conforme necessário)
+    var modal = document.getElementById('myModalestimativa');
+    modal.style.display = 'block';
+}
+
+
+
+
 carregarHistoricoMovimentacao();
 
 restaurarDadosTabelaFimLocal();
@@ -1012,4 +1300,3 @@ removerDuplicatasTabelaFim();
 preencherArrays();
 
 removerDuplicatas();
-
