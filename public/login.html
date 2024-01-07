@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="shortcut icon" href="logogustavodev.jpg" type="image/x-icon">
+  <link rel="stylesheet" href="/login.css">
+  <title>Login | Nome Empresa</title>
+</head>
+<body>
+  <div class="flex">
+    <div class="login-container">
+      <img src= "logogustavodev.jpg" alt="Churrascaria Logo" class="logo">
+      <h2>Login</h2>
+      <form id="login-form">
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
+        
+        <label for="password">Senha:</label>
+        <input type="password" id="password" required>
+  
+        <!-- Remover a chamada direta da função no HTML -->
+        <button type="button" id="loginButton">Entrar</button>
+      </form>
+    </div>
+    <footer>
+      <p>&copy; 2023 GUSTAVO DEV - Sistema de Estoque</p>
+    </footer>
+  </div>
+
+  
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJ5bKMlhE_Yz9zonThHU3jg2giNL2b1uU",
+  authDomain: "estoques-17fa6.firebaseapp.com",
+  projectId: "estoques-17fa6",
+  storageBucket: "estoques-17fa6.appspot.com",
+  messagingSenderId: "41969651629",
+  appId: "1:41969651629:web:ec4922b09c76f8af5cdb24"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const auth = getAuth(firebaseApp);
+
+    function extractFirstName(email) {
+            // Extrair o primeiro nome do endereço de e-mail
+            return email.split('@')[0];
+        }
+
+    function performLogin() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      if (!isValidEmail(email)) {
+        console.error("Email inválido.");
+        return;
+      }
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          const firstName = extractFirstName(email);
+          localStorage.setItem('userName', user.displayName || firstName);
+
+          console.log("Login bem-sucedido!", userCredential);
+          window.location.href = 'dashboard.html';
+        })
+        .catch((error) => {
+          alert('Email ou Senha Invalida, Tente Novamente')
+          console.error("Erro no login:", error.message);
+        });
+    }
+
+    function isValidEmail(email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Registrar o manipulador de eventos diretamente no script
+      document.getElementById('loginButton').addEventListener('click', performLogin);
+    });
+  </script>
+</body>
+</html>
