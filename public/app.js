@@ -667,7 +667,6 @@ function marcarComoChegou(index) {
 
         console.log(`Nome do Produto: ${nomeProduto}, Quantidade Chegou: ${quantidadeChegou}`);
 
-
         // Atualize a tabela com as informações do pedido que chegou
         adicionarQuantidadeTabela(nomeProduto, quantidadeChegou);
 
@@ -788,9 +787,25 @@ function atualizarListaPedidosFinalizados() {
             const listItem = document.createElement("li");
             listItem.textContent = pedido;
             listaPedidosFinalizados.appendChild(listItem);
+            // Adiciona botão de exclusão
+            const btnExcluir = document.createElement("button");
+            btnExcluir.textContent = "Excluir";
+            btnExcluir.onclick = function () {
+                deleteP(index);
+            };
+
+            // Adiciona botão de chegou
+            const btnChegou = document.createElement("button");
+            btnChegou.textContent = "Chegou";
+            btnChegou.onclick = function () {
+                marcarComoChegou(index);
+            };
+
+            listItem.appendChild(btnExcluir);
+            listItem.appendChild(btnChegou);
+            listaPedidosFinalizados.appendChild(listItem);
         });
     } else {
-        // Adicione uma mensagem se não houver pedidos finalizados
         const listItem = document.createElement("li");
         listItem.textContent = "Nenhum pedido finalizado.";
         listaPedidosFinalizados.appendChild(listItem);
@@ -800,12 +815,10 @@ function atualizarListaPedidosFinalizados() {
 
 window.onload = function() {
     carregarPedidosFinalizadosDoFirebase()
-        .then(() => {
-            // Outras operações de inicialização, se necessário
+        .then(() => {   
         })
         .catch(error => {
             console.error('Erro durante o carregamento de pedidos finalizados:', error);
-            // Trate o erro conforme necessário
         });
 };
 
@@ -816,16 +829,14 @@ function formatarData(data) {
     }
     if (!(data instanceof Date) || isNaN(data)) {
         console.error("A data fornecida não é válida.");
-        return null;  // ou lançar uma exceção, dependendo do comportamento desejado
+        return null; 
     }
     var dia = data.getDate();
-    var mes = data.getMonth() + 1; // Os meses são indexados de 0 a 11
+    var mes = data.getMonth() + 1; 
     var ano = data.getFullYear();
     var hora = data.getHours();
     var minutos = data.getMinutes();
     var segundos = data.getSeconds();
-
-    // Adiciona zero à esquerda se for menor que 10
     dia = dia < 10 ? '0' + dia : dia;
     mes = mes < 10 ? '0' + mes : mes;
     hora = hora < 10 ? '0' + hora : hora;
@@ -840,9 +851,7 @@ var dadosFimDia = [];
 var relatoriosGerados = [];
 
 function calcularDiferencasEExportar() {
-    // Chama a função para preencher os arrays de dados
     preencherArrays();
-
     var diferencaArray = [];
     var valorTotalEstoque = 0;
     var totalProdutosVendidos = 0;
@@ -852,10 +861,7 @@ function calcularDiferencasEExportar() {
     var produtosQuantidadeBaixa = [];
     var produtosQuantidadeAlta = [];
 
-    // Adiciona um cabeçalho ao array
     diferencaArray.push(`Sua Marca Aqui\nRelatório de Estoque e Vendas - ${formatarData(new Date())}`);
-
-    // Adiciona uma seção para o estoque atual
     diferencaArray.push("\nESTOQUE ATUAL:");
 
     for (var i = 0; i < dadosInicioDia.length; i++) {
@@ -866,7 +872,6 @@ function calcularDiferencasEExportar() {
         diferencaArray.push(`${produtoInicioDia}: ${quantidadeInicioDia}`);
         valorTotalEstoque += quantidadeInicioDia * precoInicioDia;
 
-        // Verifica variação em relação ao dia anterior
         var dadosDiaAnterior = dadosFimDia.find(item => item.produto === produtoInicioDia);
         if (dadosDiaAnterior) {
             variacaoDiaAnterior += (quantidadeInicioDia - dadosDiaAnterior.quantidade) * precoInicioDia;
@@ -874,7 +879,6 @@ function calcularDiferencasEExportar() {
             entradasProdutos.push(`Entrada de ${quantidadeInicioDia} unidades do produto ${produtoInicioDia}`);
         }
 
-        // Verifica produtos com quantidades baixas e altas
         if (quantidadeInicioDia <= 5) {
             produtosQuantidadeBaixa.push(`Estoque baixo para o produto ${produtoInicioDia}`);
         } else if (quantidadeInicioDia >= 20) {
@@ -885,7 +889,6 @@ function calcularDiferencasEExportar() {
     for (var i = 0; i < historicoMovimentacao.length; i++) {
         var movimentacao = historicoMovimentacao[i];
         var dataMovimentacao = formatarData(movimentacao.data);
-        // Atualiza as informações totais de vendas
         if (movimentacao.tipo.toUpperCase() === "saida") {
             totalProdutosVendidos += movimentacao.quantidade;
             var precoProduto = dadosInicioDia.find(item => item.produto === movimentacao.produto)?.preco || 0;
@@ -893,7 +896,6 @@ function calcularDiferencasEExportar() {
         }
     }
 
-    // Adiciona métricas adicionais ao relatório
     diferencaArray.push(`\nVARIAÇÃO EM RELAÇÃO AO DIA ANTERIOR: ${variacaoDiaAnterior.toFixed(2)}`);
     diferencaArray.push("\nPRODUTOS COM QUANTIDADES BAIXAS:");
     produtosQuantidadeBaixa.forEach(produto => diferencaArray.push(produto));
@@ -901,9 +903,7 @@ function calcularDiferencasEExportar() {
     produtosQuantidadeAlta.forEach(produto => diferencaArray.push(produto));
 
     console.log("Valor Total Estoque (Antes de adicionar ao relatório):", valorTotalEstoque.toFixed(2));
-    // Adiciona o valor total do estoque ao relatório
     diferencaArray.push(`\nVALOR TOTAL EM ESTOQUE: ${valorTotalEstoque.toFixed(2)}`);
-    // Adiciona o total de produtos vendidos e o valor total vendido ao relatório
     diferencaArray.push(`TOTAL DE PRODUTOS VENDIDOS: ${totalProdutosVendidos}`);
     diferencaArray.push(`VALOR TOTAL VENDIDO: R$ ${valorTotalVendido.toFixed(2)}`);
     diferencaArray.push("\nHISTÓRICO DE MOVIMENTAÇÃO:");
@@ -918,12 +918,9 @@ function calcularDiferencasEExportar() {
     if (diferencaArray.length > 2) {
         console.log("Relatório de Estoque e Vendas:");
 
-        // Exibe no console as diferenças formatadas
         diferencaArray.forEach(item => console.log(item));
 
         var texto = diferencaArray.join('\n');
-
-        // Download do arquivo de texto
         var link = document.createElement('a');
         link.href = 'data:text/plain;charset=utf-8,' + encodeURIComponent(texto);
         link.download = `SuaMarcaAquirelatorio_estoque_vendas_${formatarData(new Date())}.txt`;
@@ -943,15 +940,12 @@ function preencherArrays() {
     var tabelaInicioDia = document.getElementById('tabelaInicioDia');
     var tabelaFimDia = document.getElementById('tabelaFimDia');
 
-    // Preencher o array de dados do início do dia
     for (var i = 1; i < tabelaInicioDia.rows.length; i++) {
         var produtoInicioDia = tabelaInicioDia.rows[i].cells[0].innerText.trim();
         var quantidadeInicioDia = parseInt(tabelaInicioDia.rows[i].cells[1].innerText.trim());
         var precoInicioDia = parseFloat(tabelaInicioDia.rows[i].cells[2].innerText.trim());
         dadosInicioDia.push({ produto: produtoInicioDia, quantidade: quantidadeInicioDia, preco: precoInicioDia });
     }
-
-    // Preencher o array de dados do final do dia
     for (var j = 1; j < tabelaFimDia.rows.length; j++) {
         var produtoFimDia = tabelaFimDia.rows[j].cells[0].innerText.trim();
         var quantidadeFimDia = parseInt(tabelaFimDia.rows[j].cells[1].innerText.trim());
@@ -969,12 +963,10 @@ function atualizarTabelaInicioDia() {
 
     nomesUnicos = [];
 
-    // Limpa a tabela de início do dia
     while (tabelaInicioDia.rows.length > 1) {
         tabelaInicioDia.deleteRow(1);
     }
 
-    // Preenche a tabela de início do dia com dados do banco de dados
     database.ref('produtos').once('value').then(function(snapshot) {
         snapshot.forEach(function(childSnapshot) {
             var produto = childSnapshot.val();
@@ -1019,7 +1011,6 @@ function atualizarTabelaInicioDia() {
 function limparTabelaFimDia() {
     var tabelaFimDia = document.getElementById("tabelaFimDia");
 
-    // Limpa a tabela de fim do dia
     while (tabelaFimDia.rows.length > 1) {
         tabelaFimDia.deleteRow(1);
     }
@@ -1030,10 +1021,6 @@ function atualizarTabelaFimComInicio() {
     var tabelaInicioDia = document.getElementById("tabelaInicioDia");
     var tabelaFimDia = document.getElementById("tabelaFimDia");
 
-    // Limpa a tabela de fim do dia antes de adicionar os dados da tabela de início
-    
-
-    // Adiciona os dados da tabela de início à tabela de fim
     for (var i = 1; i < tabelaInicioDia.rows.length; i++) {
         var rowInicioDia = tabelaInicioDia.rows[i];
         var rowFimDia = tabelaFimDia.insertRow(-1);
@@ -1049,22 +1036,17 @@ function atualizarTabelaFimComInicio() {
 
 function limparTabelaInicioDia() {
     var tabelaInicioDia = document.getElementById("tabelaInicioDia");
-
-    // Limpa a tabela de início do dia
     while (tabelaInicioDia.rows.length > 1) {
         tabelaInicioDia.deleteRow(1);
     }
 }
 
-// Função para atualizar a tabela de início com os dados da tabela de fim
 function atualizarTabelaInicioComFim() {
     var tabelaInicioDia = document.getElementById("tabelaInicioDia");
     var tabelaFimDia = document.getElementById("tabelaFimDia");
 
-    // Limpa a tabela de início do dia antes de adicionar os dados da tabela de fim
     limparTabelaInicioDia();
 
-    // Adiciona os dados da tabela de fim à tabela de início
     for (var i = 1; i < tabelaFimDia.rows.length; i++) {
         var rowFimDia = tabelaFimDia.rows[i];
         var rowInicioDia = tabelaInicioDia.insertRow(-1);
@@ -1077,17 +1059,12 @@ function atualizarTabelaInicioComFim() {
     }
 }
 
-// Exemplo de uso:
-// Chamada para limpar a tabela de início e adicionar os dados da tabela de fim
-// Função para remover duplicatas da tabela de fim do dia
 function removerDuplicatasTabelaFim() {
     var tabelaFimDia = document.getElementById("tabelaFimDia");
     var nomesUnicos = [];
 
     for (var i = tabelaFimDia.rows.length - 1; i >= 1; i--) {
         var nomeProduto = tabelaFimDia.rows[i].cells[0].innerText.trim();
-
-        // Verifica se o nome já foi encontrado
         if (nomesUnicos.indexOf(nomeProduto) === -1) {
             nomesUnicos.push(nomeProduto);
         } else {
@@ -1096,12 +1073,10 @@ function removerDuplicatasTabelaFim() {
     }
 }
 
-// Função para tornar as tabelas sempre visíveis
 function tornarTabelasVisiveis() {
     var tabelaInicioDia = document.getElementById('tabelaInicioDia');
     var tabelaFimDia = document.getElementById('tabelaFimDia');
 
-    // Define a propriedade display para 'table'
     tabelaInicioDia.style.display = 'table';
     tabelaFimDia.style.display = 'table';
 }
@@ -1123,24 +1098,17 @@ const historicoMovimentacaoRef = database.ref('historicoMovimentacao');
 function adicionarMovimentacao(produto, quantidade, tipo) {
     var dataAtual = new Date();
     var movimentacaoEntry = {
-        data: dataAtual.toISOString(), // Convert date to string for Firebase
+        data: dataAtual.toISOString(), 
         produto: produto,
         quantidade: quantidade,
-        tipo: tipo // 'entrada' ou 'saida'
+        tipo: tipo 
     };
 
     carregarHistoricoMovimentacao();
-
-    // Push the new entry to the historicoMovimentacao array
     historicoMovimentacao.push(movimentacaoEntry);
-
-    // Save historicoMovimentacao to Firebase
     historicoMovimentacaoRef.set(historicoMovimentacao);
 }
 
-// Função para calcular a média da quantidade de um produto nos últimos 5 dias
-
-// Função para salvar dados no Firebase
 function salvarDadosTabelaFimLocal() {
     var tabelaFimDia = document.getElementById("tabelaFimDia");
     var dadosTabelaFim = [];
@@ -1157,7 +1125,6 @@ function salvarDadosTabelaFimLocal() {
         });
     }
 
-    // Salva os dados no Firebase
     var database = firebase.database();
     var dadosRef = database.ref('dadosTabelaFim');
 
@@ -1170,26 +1137,16 @@ function salvarDadosTabelaFimLocal() {
         });
 }
 
-// Função para recuperar dados do Firebase
+
 function restaurarDadosTabelaFimLocal() {
-    // Obter uma referência para o elemento de tabela HTML com o id "tabelaFimDia"
     var tabelaFimDia = document.getElementById("tabelaFimDia");
-
-    // Obter uma referência para o Banco de Dados em Tempo Real do Firebase
     var database = firebase.database();
-
-    // Criar uma referência para o nó "dadosTabelaFim" no banco de dados
     var dadosRef = database.ref('dadosTabelaFim');
-
-    // Recuperar dados do Firebase uma vez
     dadosRef.once('value')
         .then(function(snapshot) {
-            // Extrair os dados do snapshot
             var dadosTabelaFim = snapshot.val();
 
-            // Verificar se há dados disponíveis
             if (dadosTabelaFim) {
-                // Limpar as linhas e o cabeçalho existentes na tabela HTML
                 tabelaFimDia.innerHTML = '';
 
                 // Adicionar o cabeçalho da tabela com uma classe CSS específica
