@@ -112,8 +112,6 @@ function addProductToList() {
     var productQuantity = document.getElementById('productQuantity').value;
     // Validar entradas
     if (productName !== '' && productQuantity !== '') {
-        // Obter a tabela de início do dia
-        var tabelaInicioDia = document.getElementById('tabelaInicioDia');
         // Verificar se o produto já está na tabela
         var produtoNaTabela = checkIfProductInTable(productName, productQuantity);
         if (!produtoNaTabela) {
@@ -133,7 +131,6 @@ function addProductToList() {
         alert('Preencha todos os campos.');
     }
 }
-
 
 function checkIfProductInTable(productName, productQuantity) {
     var tabelaInicioDia = document.getElementById('tabelaInicioDia');
@@ -165,11 +162,6 @@ function saveProductToFirebase(productName, productQuantity) {
     });
 }
 
-window.onload = function() {
-    // Carregue os dados do Firebase e construa a lista
-    loadProductsFromFirebase();
-};
-
 function loadProductsFromFirebase() {
     // Obter uma referência para o nó "products" no banco de dados
     var productsRef = database.ref('products');
@@ -187,7 +179,6 @@ function loadProductsFromFirebase() {
 
             // Adicionar o produto à lista
             addProductToTableView(productName, productQuantity, childSnapshot.key);
-        
         });
     });
 }
@@ -258,27 +249,13 @@ function deleteProductFromFirebase(productId) {
     });
 }
 
-function clearTable() {
-    // Limpar a tabela antes de recarregar os dados do Firebase
-    var tabelaInicioDia = document.getElementById('tabelaInicioDia');
-    tabelaInicioDia.innerHTML = '';
-
-    // Adicionar cabeçalho à tabela
-    var header = tabelaInicioDia.createTHead();
-    var row = header.insertRow(0);
-    row.insertCell(0).textContent = 'Produto';
-    row.insertCell(1).textContent = 'Quantidade';
-}
-
 function loadTableFromFirebase() {
     // Obter uma referência para o nó "products" no banco de dados
     var productsRef = database.ref('products');
 
     // Carregar dados do Firebase
     productsRef.once('value').then(function(snapshot) {
-        // Limpar a tabela antes de adicionar os dados
-        clearTable();
-
+        
         snapshot.forEach(function(childSnapshot) {
             var productData = childSnapshot.val();
             var productName = productData.nome;
@@ -288,14 +265,6 @@ function loadTableFromFirebase() {
             addToTable(productName, productQuantity);
         });
     });
-}
-
-function addToTable(productName, productQuantity) {
-    // Adicionar o produto à tabela
-    var tabelaInicioDia = document.getElementById('tabelaInicioDia');
-    var row = tabelaInicioDia.insertRow(-1);
-    row.insertCell(0).textContent = productName;
-    row.insertCell(1).textContent = productQuantity;
 }
 
 function exibirNotificacao(titulo, mensagem) {
@@ -429,7 +398,6 @@ function atualizarQuantidadeInicioDia(key) {
                     adicionarMovimentacao(produto.nome, diferencaQuantidade, 'saida');
                 }
                 atualizarTabelaInicioDia();
-                estimarEstoqueAtualSeteDiasAtras();
                 exibirNotificacao('Produto Alterado', 'um produto foi atualizado ' + produto.nome + ' ' + novaQuantidade + ' Unidade');
                 
             });
@@ -930,7 +898,7 @@ function abrirModalvisao() {
     // Iterar sobre o histórico de movimentação e somar as quantidades para 'saida'
     for (var i = 0; i < historicoMovimentacao.length; i++) {
         if (historicoMovimentacao[i].tipo.toUpperCase() === 'SAIDA') {
-            totalProdutosVendidos += historicoMovimentacao[i].quantidade;
+            totalProdutosVendidos += Math.abs(historicoMovimentacao[i].quantidade);
         }
     }
 
@@ -944,7 +912,7 @@ function calcularValorTotalVendido() {
     for (var i = 0; i < historicoMovimentacao.length; i++) {
         if (historicoMovimentacao[i].tipo.toUpperCase() === 'SAIDA') {
             var precoProduto = dadosInicioDia.find(item => item.produto === historicoMovimentacao[i].produto)?.preco || 0;
-            valorTotalVendido += historicoMovimentacao[i].quantidade * precoProduto;
+            valorTotalVendido += Math.abs(historicoMovimentacao[i].quantidade * precoProduto);
         }
     }
 
@@ -1080,7 +1048,7 @@ function calcularDiferencasEExportar() {
         var movimentacao = historicoMovimentacao[i];
         var dataMovimentacao = formatarData(movimentacao.data);
 
-        diferencaArray.push(`${dataMovimentacao} - ${movimentacao.tipo.toUpperCase()} - Produto: ${movimentacao.produto}, Quantidade: ${movimentacao.quantidade}`);
+        diferencaArray.push(`${dataMovimentacao} - ${movimentacao.tipo.toUpperCase()} - Produto: ${movimentacao.produto}, Quantidade: ${Math.abs(movimentacao.quantidade)}`);
     }
 
     if (diferencaArray.length > 2) {
@@ -1449,7 +1417,7 @@ function estimarEstoqueAtualSeteDiasAtras() {
     // Calcula a média diária para cada produto e adiciona à lista HTML
     for (var produto in estimativas) {
         if (estimativas.hasOwnProperty(produto)) {
-            var mediaDiaria = estimativas[produto].totalVendido / estimativas[produto].diasContados;
+            var mediaDiaria = Math.abs(estimativas[produto].totalVendido / estimativas[produto].diasContados).toFixed(2);
 
             // Adiciona à lista HTML
             estimativasHTML.push(`<li>Estimativa para ${produto} nos últimos 7 dias: ${mediaDiaria} unidades por dia.</li>`);
@@ -1480,3 +1448,5 @@ removerDuplicatasTabelaFim();
 preencherArrays();
 
 removerDuplicatas();
+
+loadProductsFromFirebase();
