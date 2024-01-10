@@ -90,6 +90,11 @@ function fecharDia() {
         database.ref('estadoDia').set(false);
         atualizarEstadoDiaFirebase(false);
         historicoMovimentacao = [];
+        setTimeout(() =>{
+            historicoEstimativa = [];
+            historicoEstimativaRef.remove();
+        }, 7 * 24 * 60 * 60 * 1000);
+        historicoMovimentacaoRef.remove();
     } else {
         console.log('Fechamento do dia cancelado.');
     }
@@ -387,6 +392,7 @@ function adicionarProduto() {
 
         atualizarTabelaInicioDia();
         adicionarMovimentacao(nome, quantidade, 'entrada');
+        estimarEstoqueAtualSeteDiasAtras();
         // Atualiza as variáveis de rastreamento
         totalProdutosEstoque += quantidade;
         valorTotalEstoque += quantidade * preco;
@@ -423,6 +429,7 @@ function atualizarQuantidadeInicioDia(key) {
                     adicionarMovimentacao(produto.nome, diferencaQuantidade, 'saida');
                 }
                 atualizarTabelaInicioDia();
+                estimarEstoqueAtualSeteDiasAtras();
                 exibirNotificacao('Produto Alterado', 'um produto foi atualizado ' + produto.nome + ' ' + novaQuantidade + ' Unidade');
                 
             });
@@ -442,6 +449,7 @@ function removerProdutoInicioDia(key) {
             database.ref('produtos/' + key).remove();
             atualizarTabelaInicioDia();
             exibirNotificacao('Produto Removido', 'Um produto Foi Excluido Da Tabela')
+            estimarEstoqueAtualSeteDiasAtras();
         }
         
     } else {
@@ -655,24 +663,87 @@ function deleteP(index) {
 }
 
 
+// ... (existing code)
+
 function marcarComoChegou(index) {
     const pedidoExcluido = pedidosFinalizados[index];
 
-    // Obtenha informações relevantes do pedido (por exemplo, nome do produto e quantidade)
+    // Extract product information from the completed order
     const regexResult = /Produto: (.+), Quantidade: (\d+)/.exec(pedidoExcluido);
 
     if (regexResult) {
         const nomeProduto = regexResult[1];
         const quantidadeChegou = parseInt(regexResult[2]);
 
-        console.log(`Nome do Produto: ${nomeProduto}, Quantidade Chegou: ${quantidadeChegou}`);
+        // Check if the product is already in the tabelaInicioDia table
+        const produtoNaTabela = produtoNaTabelaInicioDia(nomeProduto);
 
-        // Atualize a tabela com as informações do pedido que chegou
-        adicionarQuantidadeTabela(nomeProduto, quantidadeChegou);
-
-        // Remova o pedido da lista de pedidos finalizados
-        deleteP(index);
+        if (produtoNaTabela) {
+            // Product is already in the table, proceed with updating quantity
+            adicionarQuantidadeTabela(nomeProduto, quantidadeChegou);
+            deleteP(index);
+        } else {
+            // Product is not in the table, prompt for the price
+            const precoProduto = prompt(`Digite o preço para o produto "${nomeProduto}":`);
+            
+            if (precoProduto !== null && !isNaN(precoProduto)) {
+                // Price is provided and valid, add the product to the table
+                adicionarProdutoTabelaInicioDia(nomeProduto, quantidadeChegou, parseFloat(precoProduto));
+                deleteP(index);
+            } else {
+                alert("Por favor, digite um preço válido para o produto.");
+            }
+        }
     }
+}
+
+function produtoNaTabelaInicioDia(nomeProduto) {
+    var tabelaInicioDia = document.getElementById('tabelaInicioDia');
+    var linhas = tabelaInicioDia.rows;
+
+    for (var i = 1; i < linhas.length; i++) {
+        var colunas = linhas[i].cells;
+        var nomeProdutoNaTabela = colunas[0].textContent.trim();
+
+        if (nomeProdutoNaTabela === nomeProduto) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function adicionarProdutoTabelaInicioDia(nomeProduto, quantidadeChegou, precoProduto) {
+    var tabelaInicioDia = document.getElementById('tabelaInicioDia');
+    var newRow = tabelaInicioDia.insertRow(-1);
+
+    // Add cells
+    var cellProduto = newRow.insertCell(0);
+    var cellQuantidade = newRow.insertCell(1);
+    var cellPreco = newRow.insertCell(2);
+
+    // Set cell values
+    cellProduto.textContent = nomeProduto;
+    cellQuantidade.textContent = quantidadeChegou;
+    cellPreco.textContent = precoProduto.toFixed(2);  // Display price with two decimal places
+
+    // Use the dataset attribute to store the quantity
+    cellQuantidade.dataset.quantidade = quantidadeChegou;
+
+    // Update Firebase with the new product
+    adicionarProdutoFirebase(nomeProduto, quantidadeChegou, precoProduto);
+    atualizarTabelaInicioDia();
+    // Display a notification
+    exibirNotificacao('Produto Adicionado', `Um novo produto foi adicionado: ${nomeProduto} - ${quantidadeChegou} unidades`);
+
+    console.log(`Produto adicionado à tabela: ${nomeProduto}, Quantidade: ${quantidadeChegou}, Preço: ${precoProduto}`);
+}
+
+function adicionarProdutoFirebase(nomeProduto, quantidadeChegou, precoProduto) {
+    database.ref('produtos').push({
+        nome: nomeProduto,
+        quantidade: quantidadeChegou,
+        preco: precoProduto
+    });
 }
 
 function adicionarQuantidadeTabela(nomeProduto, quantidadeChegou) {
@@ -815,6 +886,7 @@ function atualizarListaPedidosFinalizados() {
 
 
 window.onload = function() {
+    carregarHistoricoEstimativa();
     carregarPedidosFinalizadosDoFirebase()
         .then(() => {
             // Outras operações de inicialização, se necessário
@@ -825,7 +897,87 @@ window.onload = function() {
         });
 };
 
+function abrirModalvisao() {
+    var modal = document.getElementById('infoModal');
+    modal.style.display = 'block';
+    preencherInformacoesModal();
+  }
+  
+  // Função para fechar o modal
+  function fecharModalvisao() {
+    var modal = document.getElementById('infoModal');
+    modal.style.display = 'none';
+  }
+  
+  // Função para preencher as informações no modal
+  function preencherInformacoesModal() {
+    // Calcular o valor total do estoque e o total de produtos
+    var valorTotalEstoque = calcularValorTotalEstoque();
+    var totalProdutos = calcularTotalProdutos();
+    var totalProdutosVendidos = calcularTotalProdutosVendidos();
+    var valorTotalVendido = calcularValorTotalVendido();
 
+    // Preencher as informações no modal
+    document.getElementById('modalTotalProdutosVendidos').textContent = totalProdutosVendidos;
+    document.getElementById('modalValorTotalVendido').textContent = 'R$ ' + valorTotalVendido.toFixed(2);
+    document.getElementById('modalValorEstoque').textContent = 'R$ ' + valorTotalEstoque.toFixed(2);
+    document.getElementById('modalTotalProdutos').textContent = totalProdutos;
+  }
+  
+  function calcularTotalProdutosVendidos() {
+    var totalProdutosVendidos = 0;
+
+    // Iterar sobre o histórico de movimentação e somar as quantidades para 'saida'
+    for (var i = 0; i < historicoMovimentacao.length; i++) {
+        if (historicoMovimentacao[i].tipo.toUpperCase() === 'SAIDA') {
+            totalProdutosVendidos += historicoMovimentacao[i].quantidade;
+        }
+    }
+
+    return totalProdutosVendidos;
+}
+
+function calcularValorTotalVendido() {
+    var valorTotalVendido = 0;
+
+    // Iterar sobre o histórico de movimentação e somar os valores para 'saida'
+    for (var i = 0; i < historicoMovimentacao.length; i++) {
+        if (historicoMovimentacao[i].tipo.toUpperCase() === 'SAIDA') {
+            var precoProduto = dadosInicioDia.find(item => item.produto === historicoMovimentacao[i].produto)?.preco || 0;
+            valorTotalVendido += historicoMovimentacao[i].quantidade * precoProduto;
+        }
+    }
+
+    return valorTotalVendido;
+}
+
+  // Função para calcular o valor total do estoque
+  function calcularValorTotalEstoque() {
+    var valorTotalEstoque = 0;
+    preencherArrays();
+  
+    // Calcular o valor total do estoque com base nos dados do início do dia
+    for (var i = 0; i < dadosInicioDia.length; i++) {
+      var quantidade = dadosInicioDia[i].quantidade;
+      var preco = dadosInicioDia[i].preco;
+      valorTotalEstoque += quantidade * preco;
+    }
+  
+    return valorTotalEstoque;
+  }
+  
+  // Função para calcular o total de produtos
+  function calcularTotalProdutos() {
+    var totalProdutos = 0;
+    preencherArrays();
+    // Calcular o total de produtos com base nos dados do início do dia
+    for (var i = 0; i < dadosInicioDia.length; i++) {
+      totalProdutos += dadosInicioDia[i].quantidade;
+    }
+  
+    return totalProdutos;
+  }
+  
 function formatarData(data) {
     if (typeof data === 'string') {
         data = new Date(data);
@@ -1132,9 +1284,20 @@ function carregarHistoricoMovimentacao() {
         });
 }
 
-var historicoMovimentacao = [];
+function carregarHistoricoEstimativa() {
+    historicoEstimativaRef.once('value')
+        .then((snapshot) => {
+            historicoEstimativa = snapshot.val() || [];
+        })
+        .catch((error) => {
+            console.error('Erro ao buscar o historicoMovimentacao:', error);
+        });
+}
 
+var historicoMovimentacao = [];
+var historicoEstimativa = [];
 const historicoMovimentacaoRef = database.ref('historicoMovimentacao');
+const historicoEstimativaRef = database.ref('historicoEstimativa');
 
 function adicionarMovimentacao(produto, quantidade, tipo) {
     var dataAtual = new Date();
@@ -1146,12 +1309,15 @@ function adicionarMovimentacao(produto, quantidade, tipo) {
     };
 
     carregarHistoricoMovimentacao();
-
+    carregarHistoricoEstimativa();
     // Push the new entry to the historicoMovimentacao array
     historicoMovimentacao.push(movimentacaoEntry);
+    
+    historicoEstimativa.push(movimentacaoEntry);
 
     // Save historicoMovimentacao to Firebase
     historicoMovimentacaoRef.set(historicoMovimentacao);
+    historicoEstimativaRef.set(historicoEstimativa);
 }
 
 // Função para calcular a média da quantidade de um produto nos últimos 5 dias
@@ -1243,8 +1409,7 @@ function restaurarDadosTabelaFimLocal() {
 }   
 
 function estimarEstoqueAtualSeteDiasAtras() {
-    carregarHistoricoMovimentacao();
-
+    carregarHistoricoEstimativa();
     // Objeto para armazenar as estimativas de cada produto
     var estimativas = {};
 
@@ -1258,8 +1423,8 @@ function estimarEstoqueAtualSeteDiasAtras() {
     // Array para armazenar as estimativas formatadas para exibição em HTML
     var estimativasHTML = [];
 
-    for (var i = 0; i < historicoMovimentacao.length; i++) {
-        var movimentacao = historicoMovimentacao[i];
+    for (var i = 0; i < historicoEstimativa.length; i++) {
+        var movimentacao = historicoEstimativa[i];
         var dataMovimentacao = new Date(movimentacao.data);
 
         // Verifica se a movimentação está dentro do intervalo de 7 dias
@@ -1300,10 +1465,9 @@ function estimarEstoqueAtualSeteDiasAtras() {
     modal.style.display = 'block';
 }
 
-
-
-
 carregarHistoricoMovimentacao();
+
+carregarHistoricoEstimativa();
 
 restaurarDadosTabelaFimLocal();
 

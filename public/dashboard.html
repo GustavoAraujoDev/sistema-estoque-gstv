@@ -13,6 +13,8 @@
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>Dashboard | Nome Empresa</title>
 </head>
 
@@ -47,11 +49,9 @@
     <h2>Fim do Dia</h2>
     <table id="tabelaFimDia" class="fechado">
     </table>
-
-     <!-- total de produtos -->
-    <p>Total de Produtos: <span id="totalProdutos">0</span></p>  
     
     <!-- buttons -->
+    <button onclick="abrirModalvisao()"><i class="bi bi-list-ul"></i> Visao Geral</button>
     <button onclick="openProductModal()"><i class="bi bi-list-ul"></i> Lista de Alerta Baixo</button>
     <button onclick="compararalert()"> <i class="bi bi-exclamation-triangle"></i> Alerta de Estoque Baixo</button>
     <button onclick="adicionarProduto()"> <i class="bi bi-plus"></i> Adicionar Produto</button>
@@ -104,6 +104,20 @@
         </footer>
     </div>
 
+    <!-- Modal visao geral -->
+<div id="infoModal" class="modalvisao">
+    <div class="modal-content">
+        <img src="logogustavodev.jpg" class="logopedidosfinalizado">
+        <h2>Visão Geral</h2>
+      <span class="close" onclick="fecharModalvisao()">&times;</span>
+      <p><strong>Valor Total Estoque:</strong> <span id="modalValorEstoque"></span></p>
+      <p><strong>Total de Produtos:</strong> <span id="modalTotalProdutos"></span></p>
+      <p><strong>Total de Produtos Vendidos:</strong> <span id="modalTotalProdutosVendidos"></span></p>
+      <p><strong>Valor Total Vendido (R$):</strong> <span id="modalValorTotalVendido"></span></p>
+
+    </div>
+  </div>
+  
     <!-- modal de pedidos -->
     <div id="formularioPedido" style="display:none;" class="formularioPedido">
         <button type="button" onclick="fecharFormularioPedido()">Fechar</button>
